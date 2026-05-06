@@ -17,61 +17,54 @@ import javax.mail.internet.MimeMessage;
 public class OTPService {
 
     private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final int SMTP_PORT = 587;
-    
-    // Lee de variables de entorno primero, luego valores por defecto
-    private static final String EMAIL_REMIT = 
-        System.getenv("EMAIL_REMIT") != null ? System.getenv("EMAIL_REMIT") : "gonzalezvalerie938@gmail.com";
-    private static final String EMAIL_PASS = 
-        System.getenv("EMAIL_PASS") != null ? System.getenv("EMAIL_PASS") : "exyo fwhp thze pjlz";
-    
-    private static final int OTP_LONGITUD = 6;
-    private static final long OTP_EXPIRA_MS = 5 * 60 * 1000; // 5 minutos
+    private static final String SMTP_PORT = "587"; // String, no int
 
-    /**
-     * Genera un código OTP numérico de 6 dígitos.
-     */
+    private static final String EMAIL_REMIT = System.getenv("EMAIL_REMIT");
+    private static final String EMAIL_PASS  = System.getenv("EMAIL_PASS");
+
+    private static final long OTP_EXPIRA_MS = 5 * 60 * 1000;
+
     public static String generarOTP() {
         SecureRandom rnd = new SecureRandom();
-        // Siempre genera un número entre 100000 y 999999 → exactamente 6 dígitos, nunca empieza en 0
         int numero = 100000 + rnd.nextInt(900000);
         return String.valueOf(numero);
     }
 
     public static boolean esValido(String ingresado, String guardado, long timestamp) {
         if (ingresado == null || guardado == null) return false;
-        
         long ahora = Instant.now().toEpochMilli();
-        boolean noExpirado = (ahora - timestamp) <= OTP_EXPIRA_MS;
-        boolean coincide = ingresado.trim().equals(guardado);
-        
-        return noExpirado && coincide;
+        return (ahora - timestamp) <= OTP_EXPIRA_MS && ingresado.trim().equals(guardado);
     }
 
-    /**
-     * Envía el código OTP al correo del usuario.
-     * @throws UnsupportedEncodingException 
-     */
-    public static void enviarOTP(String destinatario, String codigoOTP, 
-                                  String asunto, String cuerpo) 
+    public static void enviarOTP(String destinatario, String codigoOTP,
+                                  String asunto, String cuerpo)
             throws MessagingException, UnsupportedEncodingException {
-        
+
+        // Validar que las variables de entorno estén configuradas
+        if (EMAIL_REMIT == null || EMAIL_PASS == null) {
+            throw new MessagingException(
+                "Variables de entorno EMAIL_REMIT y EMAIL_PASS no configuradas en el servidor."
+            );
+        }
+
         Properties props = new Properties();
         props.put("mail.smtp.host", SMTP_HOST);
-        props.put("mail.smtp.port", SMTP_PORT);
+        props.put("mail.smtp.port", SMTP_PORT);      // ahora es String
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.ssl.trust", SMTP_HOST);
 
+        final String passLimpia = EMAIL_PASS.replace(" ", "");
+
         Session mailSession = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(EMAIL_REMIT, EMAIL_PASS.replace(" ", ""));
+                return new PasswordAuthentication(EMAIL_REMIT, passLimpia);
             }
         });
 
-        // Debug mode (quitar en producción)
-        mailSession.setDebug(true);
+        // Sin debug en producción — evita exponer credenciales en logs
+        // mailSession.setDebug(true);
 
         Message mensaje = new MimeMessage(mailSession);
         mensaje.setFrom(new InternetAddress(EMAIL_REMIT, "SaludBoyacá - Citas Médicas", "UTF-8"));
