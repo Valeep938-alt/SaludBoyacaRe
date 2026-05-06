@@ -1,33 +1,18 @@
 package co.sena.cimm.adso.saludboyaca.util;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Properties;
-
-import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 public class OTPService {
 
-    private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final String SMTP_PORT = "587"; // String, no int
-
-    private static final String EMAIL_REMIT = System.getenv("EMAIL_REMIT");
-    private static final String EMAIL_PASS  = System.getenv("EMAIL_PASS");
-
-    private static final long OTP_EXPIRA_MS = 5 * 60 * 1000;
+    private static final String SENDGRID_API_KEY = System.getenv("SENDGRID_API_KEY");
+    private static final String EMAIL_REMIT      = System.getenv("EMAIL_REMIT");
+    private static final long   OTP_EXPIRA_MS    = 5 * 60 * 1000;
 
     public static String generarOTP() {
         SecureRandom rnd = new SecureRandom();
-        int numero = 100000 + rnd.nextInt(900000);
-        return String.valueOf(numero);
+        return String.valueOf(100000 + rnd.nextInt(900000));
     }
 
     public static boolean esValido(String ingresado, String guardado, long timestamp) {
@@ -37,42 +22,42 @@ public class OTPService {
     }
 
     public static void enviarOTP(String destinatario, String codigoOTP,
-                                  String asunto, String cuerpo)
-            throws MessagingException, UnsupportedEncodingException {
+                                  String asunto, String cuerpo) throws IOException {
 
-        // Validar que las variables de entorno estén configuradas
-        if (EMAIL_REMIT == null || EMAIL_PASS == null) {
-            throw new MessagingException(
-                "Variables de entorno EMAIL_REMIT y EMAIL_PASS no configuradas en el servidor."
+        if (SENDGRID_API_KEY == null || EMAIL_REMIT == null) {
+            throw new IllegalStateException(
+                "Variables SENDGRID_API_KEY y EMAIL_REMIT no configuradas en el servidor."
             );
         }
 
-        Properties props = new Properties();
-        props.put("mail.smtp.host", SMTP_HOST);
-        props.put("mail.smtp.port", SMTP_PORT);      // ahora es String
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.ssl.trust", SMTP_HOST);
+        com.sendgrid.helpers.mail.objects.Email from =
+            new com.sendgrid.helpers.mail.objects.Email(EMAIL_REMIT, "SaludBoyacá - Citas Médicas");
 
-        final String passLimpia = EMAIL_PASS.replace(" ", "");
+        com.sendgrid.helpers.mail.objects.Email to =
+            new com.sendgrid.helpers.mail.objects.Email(destinatario);
 
-        Session mailSession = Session.getInstance(props, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(EMAIL_REMIT, passLimpia);
-            }
-        });
+        com.sendgrid.helpers.mail.objects.Content content =
+            new com.sendgrid.helpers.mail.objects.Content("text/plain", cuerpo);
 
-        // Sin debug en producción — evita exponer credenciales en logs
-        // mailSession.setDebug(true);
+        com.sendgrid.helpers.mail.Mail mail =
+            new com.sendgrid.helpers.mail.Mail(from, asunto, to, content);
 
-        Message mensaje = new MimeMessage(mailSession);
-        mensaje.setFrom(new InternetAddress(EMAIL_REMIT, "SaludBoyacá - Citas Médicas", "UTF-8"));
-        mensaje.setRecipient(Message.RecipientType.TO, new InternetAddress(destinatario));
-        mensaje.setSubject(asunto);
-        mensaje.setText(cuerpo);
+        com.sendgrid.SendGrid sg = new com.sendgrid.SendGrid(SENDGRID_API_KEY);
 
-        Transport.send(mensaje);
+        com.sendgrid.Request request = new com.sendgrid.Request();
+        request.setMethod(com.sendgrid.Method.POST);
+        request.setEndpoint("mail/send");
+        request.setBody(mail.build());
+
+        com.sendgrid.Response response = sg.api(request);
+
+        System.out.println("SendGrid status: " + response.getStatusCode());
+
+        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
+            throw new IOException("Error enviando email. Status: "
+                + response.getStatusCode() + " - " + response.getBody());
+        }
+
         System.out.println("OTP enviado exitosamente a: " + destinatario);
     }
 }

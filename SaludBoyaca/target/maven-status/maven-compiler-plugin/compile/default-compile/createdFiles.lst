@@ -7,7 +7,6 @@ co\sena\cimm\adso\saludboyaca\dao\CitaDAO.class
 co\sena\cimm\adso\saludboyaca\controller\OTPServlet.class
 co\sena\cimm\adso\saludboyaca\dao\OTPTokenDAO.class
 co\sena\cimm\adso\saludboyaca\controller\LoginServlet.class
-co\sena\cimm\adso\saludboyaca\util\OTPService$1.class
 co\sena\cimm\adso\saludboyaca\util\AuthFilter.class
 co\sena\cimm\adso\saludboyaca\util\CaptchaGenerator.class
 co\sena\cimm\adso\saludboyaca\util\EncodingFilter.class
