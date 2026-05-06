@@ -1,7 +1,7 @@
 # Etapa 1: compilar con Maven + Java 8
 FROM maven:3.8.8-eclipse-temurin-8 AS build
 WORKDIR /app
-COPY . .
+COPY SaludBoyaca/ .
 RUN mvn clean package -DskipTests
 
 # Etapa 2: ejecutar en Tomcat 9 + Java 8
