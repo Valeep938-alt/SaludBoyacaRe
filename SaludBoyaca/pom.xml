@@ -14,6 +14,7 @@
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <failOnMissingWebXml>false</failOnMissingWebXml>
   </properties>
 
@@ -25,14 +26,12 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Driver PostgreSQL ← REEMPLAZA al de SQL Server -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.7.3</version>
     </dependency>
 
-    <!-- Servlet API -->
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
@@ -71,7 +70,7 @@
       <version>5.2.5</version>
     </dependency>
 
-    <!-- JavaMail API para envío de correos -->
+    <!-- JavaMail — se mantiene por si se usa en otro lugar -->
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>javax.mail</artifactId>
@@ -88,7 +87,17 @@
 
   <build>
     <finalName>SaludBoyaca</finalName>
+
+    <!-- Fuerza UTF-8 al copiar los .properties al WAR -->
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+    </resources>
+
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -96,8 +105,21 @@
         <configuration>
           <source>8</source>
           <target>8</target>
+          <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
+
+      <!-- Este plugin es la clave: lee los .properties en UTF-8 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+          <propertiesEncoding>UTF-8</propertiesEncoding>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.tomcat.maven</groupId>
         <artifactId>tomcat7-maven-plugin</artifactId>
@@ -109,15 +131,19 @@
           <compilerTargetVM>1.8</compilerTargetVM>
           <systemProperties>
             <org.apache.jasper.compiler.Parser.STRICT_QUOTE_ESCAPING>false</org.apache.jasper.compiler.Parser.STRICT_QUOTE_ESCAPING>
+            <!-- Fuerza UTF-8 en toda la JVM de Tomcat -->
+            <file.encoding>UTF-8</file.encoding>
           </systemProperties>
           <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>3.4.0</version>
       </plugin>
+
     </plugins>
   </build>
 </project>
