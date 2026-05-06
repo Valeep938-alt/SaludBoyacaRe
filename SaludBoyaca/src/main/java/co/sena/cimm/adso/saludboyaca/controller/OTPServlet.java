@@ -52,7 +52,8 @@ public class OTPServlet extends HttpServlet {
         
         String lang = (String) session.getAttribute("lang");
         if (lang == null) lang = "es";
-        ResourceBundle rb = ResourceBundle.getBundle("messages", new Locale(lang));
+        ResourceBundle rb = ResourceBundle.getBundle("messages", new Locale(lang),
+        new co.sena.cimm.adso.saludboyaca.util.UTF8Control());
         
         // Validar OTP
         if (OTPService.esValido(codigoIngresado, codigoSesion, timestamp)) {

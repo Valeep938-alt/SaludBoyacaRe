@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -122,9 +124,8 @@ public class ConsultaCitaServlet extends HttpServlet {
         if (session != null && session.getAttribute("lang") != null) {
             lang = (String) session.getAttribute("lang");
         }
-        java.util.ResourceBundle rb
-                = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(lang));
-
+        ResourceBundle rb = ResourceBundle.getBundle("messages", new Locale(lang),
+        new co.sena.cimm.adso.saludboyaca.util.UTF8Control());
         // ── Validar captcha ──────────────────────────────────────────────────
         boolean captchaValido = false;
 
