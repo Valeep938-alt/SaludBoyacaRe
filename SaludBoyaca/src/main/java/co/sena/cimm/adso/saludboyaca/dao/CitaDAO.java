@@ -367,6 +367,81 @@ public class CitaDAO {
         return lista;
     }
 
+
+    /* ===== MÉTODOS PARA FILTRAR POR MÉDICO EN DASHBOARD ===== */
+
+    public List<Cita> listarPorFechaYMedico(Date fecha, int idMedico) {
+        List<Cita> lista = new ArrayList<>();
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
+                + "FROM citas c "
+                + "JOIN pacientes p ON c.id_paciente = p.id "
+                + "JOIN usuarios u ON c.id_medico = u.id "
+                + "JOIN especialidades e ON c.id_especialidad = e.id "
+                + "WHERE c.fecha_cita=? AND c.id_medico=? ORDER BY c.hora_cita";
+        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDate(1, fecha);
+            ps.setInt(2, idMedico);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                lista.add(mapearConJoins(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error listar por fecha y medico: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    public int contarPorEstadoYMedico(String estado, int idMedico) {
+        String sql = "SELECT COUNT(*) FROM citas WHERE estado=? AND id_medico=?";
+        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, estado);
+            ps.setInt(2, idMedico);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            System.err.println("Error contar citas por estado y medico: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public int contarTotalPorMedico(int idMedico) {
+        String sql = "SELECT COUNT(*) FROM citas WHERE id_medico=?";
+        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idMedico);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            System.err.println("Error contar total por medico: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public List<EspecialidadTop> listarEspecialidadesTopPorMedico(int limite, int idMedico) {
+        List<EspecialidadTop> lista = new ArrayList<>();
+        String sql = "SELECT e.id, e.nombre, COUNT(c.id) as total "
+                + "FROM especialidades e "
+                + "LEFT JOIN citas c ON e.id = c.id_especialidad AND c.id_medico = ? "
+                + "GROUP BY e.id, e.nombre "
+                + "ORDER BY total DESC "
+                + "LIMIT ?";
+        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idMedico);
+            ps.setInt(2, limite);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                EspecialidadTop et = new EspecialidadTop();
+                et.setId(rs.getInt("id"));
+                et.setNombre(rs.getString("nombre"));
+                et.setTotalCitas(rs.getInt("total"));
+                lista.add(et);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error especialidades top por medico: " + e.getMessage());
+        }
+        return lista;
+    }
+
     private Cita mapear(ResultSet rs) throws SQLException {
         Cita c = new Cita();
         c.setId(rs.getInt("id"));

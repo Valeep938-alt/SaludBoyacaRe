@@ -52,6 +52,12 @@ public class DashboardServlet extends HttpServlet {
             return;
         }
 
+        // ===== DETERMINAR ROL Y FILTRO =====
+        String rol = usuario.getRol();
+        boolean esMedico = "MEDICO".equals(rol);
+        boolean esRecepcionista = "RECEPCIONISTA".equals(rol);
+        int idMedico = esMedico ? usuario.getId() : 0;
+
         // ===== CONFIGURAR IDIOMA =====
         String lang = request.getParameter("lang");
         if (lang != null && (lang.equals("es") || lang.equals("en") || lang.equals("it"))) {
@@ -84,57 +90,92 @@ public class DashboardServlet extends HttpServlet {
         int hoyDia = 1;
 
         try {
-            // ===== OBTENER ESTADÍSTICAS =====
-            try {
-                List<Cita> todas = citaDAO.listarTodas();
-                totalCitas = todas != null ? todas.size() : 0;
-            } catch (Exception e) {
-                System.err.println("Error listarTodas: " + e.getMessage());
-            }
-
-            try { citasProgramadas = citaDAO.contarPorEstado("PROGRAMADA"); } catch (Exception e) { /* ignore */ }
-            try { citasConfirmadas = citaDAO.contarPorEstado("CONFIRMADA"); } catch (Exception e) { /* ignore */ }
-            try { citasAtendidas = citaDAO.contarPorEstado("ATENDIDA"); } catch (Exception e) { /* ignore */ }
-            try { citasCanceladas = citaDAO.contarPorEstado("CANCELADA"); } catch (Exception e) { /* ignore */ }
-            try { totalPacientes = pacienteDAO.contar(); } catch (Exception e) { /* ignore */ }
-            try { 
-                List<Usuario> medicos = usuarioDAO.listarMedicos();
-                totalMedicos = medicos != null ? medicos.size() : 0;
-            } catch (Exception e) { /* ignore */ }
-
-            // Citas de hoy
+            // ===== OBTENER ESTADÍSTICAS (FILTRADAS POR ROL) =====
             Date hoy = new Date(System.currentTimeMillis());
-            try {
-                List<Cita> temp = citaDAO.listarPorFecha(hoy);
-                if (temp != null) citasHoy = temp;
-            } catch (Exception e) {
-                System.err.println("Error citasHoy: " + e.getMessage());
-            }
-
-            // Citas del mes
             int mesActual = cal.get(Calendar.MONTH) + 1;
             int anioActual = cal.get(Calendar.YEAR);
-            try { citasMes = citaDAO.contarPorMes(mesActual, anioActual); } catch (Exception e) { /* ignore */ }
 
-            // Top especialidades
-            try {
-                List<CitaDAO.EspecialidadTop> temp = citaDAO.listarEspecialidadesTop(5);
-                if (temp != null) especialidadesTop = temp;
-            } catch (Exception e) {
-                System.err.println("Error especialidadesTop: " + e.getMessage());
-            }
-
-            // Citas recientes
-            try {
-                List<Cita> temp = citaDAO.listarTodas();
-                if (temp != null) {
-                    citasRecientes = temp;
-                    if (citasRecientes.size() > 10) {
-                        citasRecientes = citasRecientes.subList(0, 10);
-                    }
+            if (esMedico) {
+                // === MÉDICO: solo sus citas ===
+                try {
+                    List<Cita> todas = citaDAO.listarPorMedico(idMedico);
+                    totalCitas = todas != null ? todas.size() : 0;
+                } catch (Exception e) {
+                    System.err.println("Error listarPorMedico: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.err.println("Error citasRecientes: " + e.getMessage());
+                try { citasProgramadas = citaDAO.contarPorEstadoYMedico("PROGRAMADA", idMedico); } catch (Exception e) { /* ignore */ }
+                try { citasConfirmadas = citaDAO.contarPorEstadoYMedico("CONFIRMADA", idMedico); } catch (Exception e) { /* ignore */ }
+                try { citasAtendidas = citaDAO.contarPorEstadoYMedico("ATENDIDA", idMedico); } catch (Exception e) { /* ignore */ }
+                try { citasCanceladas = citaDAO.contarPorEstadoYMedico("CANCELADA", idMedico); } catch (Exception e) { /* ignore */ }
+                try { citasMes = citaDAO.contarPorMedicoYMes(idMedico, mesActual, anioActual); } catch (Exception e) { /* ignore */ }
+                try {
+                    List<Cita> temp = citaDAO.listarPorFechaYMedico(hoy, idMedico);
+                    if (temp != null) citasHoy = temp;
+                } catch (Exception e) {
+                    System.err.println("Error citasHoy medico: " + e.getMessage());
+                }
+                try {
+                    List<CitaDAO.EspecialidadTop> temp = citaDAO.listarEspecialidadesTopPorMedico(5, idMedico);
+                    if (temp != null) especialidadesTop = temp;
+                } catch (Exception e) {
+                    System.err.println("Error especialidadesTop medico: " + e.getMessage());
+                }
+                try {
+                    List<Cita> temp = citaDAO.listarPorMedico(idMedico);
+                    if (temp != null) {
+                        citasRecientes = temp;
+                        if (citasRecientes.size() > 10) {
+                            citasRecientes = citasRecientes.subList(0, 10);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error citasRecientes medico: " + e.getMessage());
+                }
+                // Médico no ve total de pacientes ni total de médicos
+                totalPacientes = 0;
+                totalMedicos = 0;
+
+            } else {
+                // === RECEPCIONISTA / ADMIN: todas las citas ===
+                try {
+                    List<Cita> todas = citaDAO.listarTodas();
+                    totalCitas = todas != null ? todas.size() : 0;
+                } catch (Exception e) {
+                    System.err.println("Error listarTodas: " + e.getMessage());
+                }
+                try { citasProgramadas = citaDAO.contarPorEstado("PROGRAMADA"); } catch (Exception e) { /* ignore */ }
+                try { citasConfirmadas = citaDAO.contarPorEstado("CONFIRMADA"); } catch (Exception e) { /* ignore */ }
+                try { citasAtendidas = citaDAO.contarPorEstado("ATENDIDA"); } catch (Exception e) { /* ignore */ }
+                try { citasCanceladas = citaDAO.contarPorEstado("CANCELADA"); } catch (Exception e) { /* ignore */ }
+                try { totalPacientes = pacienteDAO.contar(); } catch (Exception e) { /* ignore */ }
+                try {
+                    List<Usuario> medicos = usuarioDAO.listarMedicos();
+                    totalMedicos = medicos != null ? medicos.size() : 0;
+                } catch (Exception e) { /* ignore */ }
+                try {
+                    List<Cita> temp = citaDAO.listarPorFecha(hoy);
+                    if (temp != null) citasHoy = temp;
+                } catch (Exception e) {
+                    System.err.println("Error citasHoy: " + e.getMessage());
+                }
+                try { citasMes = citaDAO.contarPorMes(mesActual, anioActual); } catch (Exception e) { /* ignore */ }
+                try {
+                    List<CitaDAO.EspecialidadTop> temp = citaDAO.listarEspecialidadesTop(5);
+                    if (temp != null) especialidadesTop = temp;
+                } catch (Exception e) {
+                    System.err.println("Error especialidadesTop: " + e.getMessage());
+                }
+                try {
+                    List<Cita> temp = citaDAO.listarTodas();
+                    if (temp != null) {
+                        citasRecientes = temp;
+                        if (citasRecientes.size() > 10) {
+                            citasRecientes = citasRecientes.subList(0, 10);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error citasRecientes: " + e.getMessage());
+                }
             }
 
             // ===== PREPARAR CALENDARIO =====
@@ -159,12 +200,17 @@ public class DashboardServlet extends HttpServlet {
             firstDayOfWeek = calView.get(Calendar.DAY_OF_WEEK);
             daysInMonth = calView.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-            // Obtener citas para cada día del mes
+            // Obtener citas para cada día del mes (filtradas por rol)
             for (int dia = 1; dia <= daysInMonth; dia++) {
                 String fechaKey = String.format("%04d-%02d-%02d", calYear, calMonth, dia);
                 try {
                     Date fechaDia = Date.valueOf(fechaKey);
-                    List<Cita> citasDia = citaDAO.listarPorFecha(fechaDia);
+                    List<Cita> citasDia;
+                    if (esMedico) {
+                        citasDia = citaDAO.listarPorFechaYMedico(fechaDia, idMedico);
+                    } else {
+                        citasDia = citaDAO.listarPorFecha(fechaDia);
+                    }
                     if (citasDia != null && !citasDia.isEmpty()) {
                         citasPorDia.put(fechaKey, citasDia);
                     }
