@@ -17,11 +17,17 @@ public class EspecialidadDAO {
         String sql = "INSERT INTO especialidades (nombre, descripcion) VALUES (?,?)";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
             ps.setString(1, e.getNombre());
             ps.setString(2, e.getDescripcion());
-            if (ps.executeUpdate() > 0) {
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) e.setId(rs.getInt(1));
+            
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        e.setId(rs.getInt(1));
+                    }
+                }
                 return true;
             }
         } catch (SQLException ex) {
@@ -34,9 +40,11 @@ public class EspecialidadDAO {
         String sql = "UPDATE especialidades SET nombre=?, descripcion=? WHERE id=?";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setString(1, e.getNombre());
             ps.setString(2, e.getDescripcion());
             ps.setInt(3, e.getId());
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
             System.err.println("Error actualizar especialidad: " + ex.getMessage());
@@ -48,6 +56,7 @@ public class EspecialidadDAO {
         String sql = "DELETE FROM especialidades WHERE id=?";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -60,9 +69,11 @@ public class EspecialidadDAO {
         String sql = "SELECT * FROM especialidades WHERE id=?";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return mapear(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapear(rs);
+            }
         } catch (SQLException e) {
             System.err.println("Error buscar especialidad: " + e.getMessage());
         }
@@ -75,7 +86,10 @@ public class EspecialidadDAO {
         try (Connection conn = Conexion.getConexion();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
-            while (rs.next()) lista.add(mapear(rs));
+            
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
         } catch (SQLException e) {
             System.err.println("Error listar especialidades: " + e.getMessage());
         }

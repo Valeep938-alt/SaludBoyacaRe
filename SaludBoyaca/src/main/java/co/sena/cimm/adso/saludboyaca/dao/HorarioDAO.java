@@ -15,16 +15,21 @@ public class HorarioDAO {
 
     public boolean insertar(Horario h) {
         String sql = "INSERT INTO horarios (id_medico, dia_semana, hora_inicio, hora_fin, max_citas) VALUES (?,?,?,?,?)";
-        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = Conexion.getConexion(); 
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
             ps.setInt(1, h.getIdMedico());
             ps.setInt(2, h.getDiaSemana());
             ps.setTime(3, h.getHoraInicio());
             ps.setTime(4, h.getHoraFin());
             ps.setInt(5, h.getMaxCitas());
-            if (ps.executeUpdate() > 0) {
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    h.setId(rs.getInt(1));
+            
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        h.setId(rs.getInt(1));
+                    }
                 }
                 return true;
             }
@@ -36,13 +41,16 @@ public class HorarioDAO {
 
     public boolean actualizar(Horario h) {
         String sql = "UPDATE horarios SET id_medico=?, dia_semana=?, hora_inicio=?, hora_fin=?, max_citas=? WHERE id=?";
-        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexion.getConexion(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setInt(1, h.getIdMedico());
             ps.setInt(2, h.getDiaSemana());
             ps.setTime(3, h.getHoraInicio());
             ps.setTime(4, h.getHoraFin());
             ps.setInt(5, h.getMaxCitas());
             ps.setInt(6, h.getId());
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error actualizar horario: " + e.getMessage());
@@ -52,7 +60,9 @@ public class HorarioDAO {
 
     public boolean eliminar(int id) {
         String sql = "DELETE FROM horarios WHERE id=?";
-        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexion.getConexion(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -62,13 +72,16 @@ public class HorarioDAO {
     }
 
     public Horario buscarPorId(int id) {
-        String sql = "SELECT h.*, u.nombres + ' ' + u.apellidos as nom_medico FROM horarios h "
+        String sql = "SELECT h.*, CONCAT(u.nombres, ' ', u.apellidos) as nom_medico FROM horarios h "
                 + "JOIN usuarios u ON h.id_medico = u.id WHERE h.id=?";
-        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexion.getConexion(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return mapearConJoin(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapearConJoin(rs);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error buscar horario: " + e.getMessage());
@@ -78,9 +91,12 @@ public class HorarioDAO {
 
     public List<Horario> listarTodos() {
         List<Horario> lista = new ArrayList<>();
-        String sql = "SELECT h.*, u.nombres + ' ' + u.apellidos as nom_medico FROM horarios h "
+        String sql = "SELECT h.*, CONCAT(u.nombres, ' ', u.apellidos) as nom_medico FROM horarios h "
                 + "JOIN usuarios u ON h.id_medico = u.id ORDER BY h.id_medico, h.dia_semana";
-        try (Connection conn = Conexion.getConexion(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+        try (Connection conn = Conexion.getConexion(); 
+             Statement st = conn.createStatement(); 
+             ResultSet rs = st.executeQuery(sql)) {
+            
             while (rs.next()) {
                 lista.add(mapearConJoin(rs));
             }
@@ -92,13 +108,16 @@ public class HorarioDAO {
 
     public List<Horario> listarPorMedico(int idMedico) {
         List<Horario> lista = new ArrayList<>();
-        String sql = "SELECT h.*, u.nombres + ' ' + u.apellidos as nom_medico FROM horarios h "
+        String sql = "SELECT h.*, CONCAT(u.nombres, ' ', u.apellidos) as nom_medico FROM horarios h "
                 + "JOIN usuarios u ON h.id_medico = u.id WHERE h.id_medico=? ORDER BY h.dia_semana";
-        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexion.getConexion(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setInt(1, idMedico);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                lista.add(mapearConJoin(rs));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearConJoin(rs));
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error listar por médico: " + e.getMessage());
@@ -109,11 +128,14 @@ public class HorarioDAO {
     public List<Integer> listarDiasPorMedico(int idMedico) {
         List<Integer> dias = new ArrayList<>();
         String sql = "SELECT DISTINCT dia_semana FROM horarios WHERE id_medico = ?";
-        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexion.getConexion(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setInt(1, idMedico);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                dias.add(rs.getInt("dia_semana"));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    dias.add(rs.getInt("dia_semana"));
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error listarDiasPorMedico: " + e.getMessage());

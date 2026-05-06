@@ -93,8 +93,8 @@ public class CitaDAO {
     }
 
     public Cita buscarPorId(int id) {
-        String sql = "SELECT c.*, p.nombres + ' ' + p.apellidos as nom_paciente, "
-                + "u.nombres + ' ' + u.apellidos as nom_medico, e.nombre as nom_especialidad "
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
                 + "FROM citas c "
                 + "JOIN pacientes p ON c.id_paciente = p.id "
                 + "JOIN usuarios u ON c.id_medico = u.id "
@@ -113,8 +113,8 @@ public class CitaDAO {
     }
 
     public Cita buscarPorDocumento(String documento) {
-        String sql = "SELECT c.*, p.nombres + ' ' + p.apellidos as nom_paciente, "
-                + "u.nombres + ' ' + u.apellidos as nom_medico, e.nombre as nom_especialidad "
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
                 + "FROM citas c "
                 + "JOIN pacientes p ON c.id_paciente = p.id "
                 + "JOIN usuarios u ON c.id_medico = u.id "
@@ -134,8 +134,8 @@ public class CitaDAO {
 
     public List<Cita> listarTodas() {
         List<Cita> lista = new ArrayList<>();
-        String sql = "SELECT c.*, p.nombres + ' ' + p.apellidos as nom_paciente, "
-                + "u.nombres + ' ' + u.apellidos as nom_medico, e.nombre as nom_especialidad "
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
                 + "FROM citas c "
                 + "JOIN pacientes p ON c.id_paciente = p.id "
                 + "JOIN usuarios u ON c.id_medico = u.id "
@@ -153,8 +153,8 @@ public class CitaDAO {
 
     public List<Cita> listarPorEstado(String estado) {
         List<Cita> lista = new ArrayList<>();
-        String sql = "SELECT c.*, p.nombres + ' ' + p.apellidos as nom_paciente, "
-                + "u.nombres + ' ' + u.apellidos as nom_medico, e.nombre as nom_especialidad "
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
                 + "FROM citas c "
                 + "JOIN pacientes p ON c.id_paciente = p.id "
                 + "JOIN usuarios u ON c.id_medico = u.id "
@@ -174,8 +174,8 @@ public class CitaDAO {
 
     public List<Cita> listarPorMedico(int idMedico) {
         List<Cita> lista = new ArrayList<>();
-        String sql = "SELECT c.*, p.nombres + ' ' + p.apellidos as nom_paciente, "
-                + "u.nombres + ' ' + u.apellidos as nom_medico, e.nombre as nom_especialidad "
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
                 + "FROM citas c "
                 + "JOIN pacientes p ON c.id_paciente = p.id "
                 + "JOIN usuarios u ON c.id_medico = u.id "
@@ -195,8 +195,8 @@ public class CitaDAO {
 
     public List<Cita> listarPorPaciente(int idPaciente) {
         List<Cita> lista = new ArrayList<>();
-        String sql = "SELECT c.*, p.nombres + ' ' + p.apellidos as nom_paciente, "
-                + "u.nombres + ' ' + u.apellidos as nom_medico, e.nombre as nom_especialidad "
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
                 + "FROM citas c "
                 + "JOIN pacientes p ON c.id_paciente = p.id "
                 + "JOIN usuarios u ON c.id_medico = u.id "
@@ -216,8 +216,8 @@ public class CitaDAO {
 
     public List<Cita> listarPorFecha(Date fecha) {
         List<Cita> lista = new ArrayList<>();
-        String sql = "SELECT c.*, p.nombres + ' ' + p.apellidos as nom_paciente, "
-                + "u.nombres + ' ' + u.apellidos as nom_medico, e.nombre as nom_especialidad "
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
                 + "FROM citas c "
                 + "JOIN pacientes p ON c.id_paciente = p.id "
                 + "JOIN usuarios u ON c.id_medico = u.id "
@@ -240,9 +240,7 @@ public class CitaDAO {
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, estado);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
             System.err.println("Error contar citas: " + e.getMessage());
         }
@@ -252,15 +250,11 @@ public class CitaDAO {
     public int contarPorMedicoFechaHora(int idMedico, Date fecha, Time hora) {
         String sql = "SELECT COUNT(*) FROM citas WHERE id_medico = ? AND fecha_cita = ? AND hora_cita = ? AND estado != 'CANCELADA'";
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setInt(1, idMedico);
             ps.setDate(2, fecha);
             ps.setTime(3, hora);
-
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
             System.err.println("Error contar citas por medico, fecha y hora: " + e.getMessage());
         }
@@ -273,9 +267,7 @@ public class CitaDAO {
             ps.setInt(1, idMedico);
             ps.setDate(2, fecha);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
             System.err.println("Error contar citas medico-fecha: " + e.getMessage());
         }
@@ -288,9 +280,7 @@ public class CitaDAO {
             ps.setInt(1, idMedico);
             ps.setString(2, estado);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
             System.err.println("Error contar citas medico-estado: " + e.getMessage());
         }
@@ -298,15 +288,13 @@ public class CitaDAO {
     }
 
     public int contarPorMedicoYMes(int idMedico, int mes, int anio) {
-        String sql = "SELECT COUNT(*) FROM citas WHERE id_medico = ? AND MONTH(fecha_cita) = ? AND YEAR(fecha_cita) = ?";
+        String sql = "SELECT COUNT(*) FROM citas WHERE id_medico = ? AND EXTRACT(MONTH FROM fecha_cita) = ? AND EXTRACT(YEAR FROM fecha_cita) = ?";
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idMedico);
             ps.setInt(2, mes);
             ps.setInt(3, anio);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
             System.err.println("Error contar citas medico-mes: " + e.getMessage());
         }
@@ -318,9 +306,7 @@ public class CitaDAO {
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDate(1, fecha);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
             System.err.println("Error contar citas por fecha: " + e.getMessage());
         }
@@ -328,14 +314,12 @@ public class CitaDAO {
     }
 
     public int contarPorMes(int mes, int anio) {
-        String sql = "SELECT COUNT(*) FROM citas WHERE MONTH(fecha_cita) = ? AND YEAR(fecha_cita) = ?";
+        String sql = "SELECT COUNT(*) FROM citas WHERE EXTRACT(MONTH FROM fecha_cita) = ? AND EXTRACT(YEAR FROM fecha_cita) = ?";
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, mes);
             ps.setInt(2, anio);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
             System.err.println("Error contar por mes: " + e.getMessage());
         }
@@ -345,7 +329,7 @@ public class CitaDAO {
     public List<String> listarHorasOcupadas(int idMedico, Date fecha) {
         List<String> horas = new ArrayList<>();
         String sql = "SELECT TO_CHAR(hora_cita, 'HH24:MI') as hora "
-        + "FROM citas WHERE id_medico=? AND fecha_cita=? AND estado != 'CANCELADA'";
+                + "FROM citas WHERE id_medico=? AND fecha_cita=? AND estado != 'CANCELADA'";
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idMedico);
             ps.setDate(2, fecha);
@@ -359,17 +343,15 @@ public class CitaDAO {
         return horas;
     }
 
-    // ===== ESPECIALIDADES TOP =====
     public List<EspecialidadTop> listarEspecialidadesTop(int limite) {
         List<EspecialidadTop> lista = new ArrayList<>();
-        String sql = "SELECT e.id, e.nombre, COUNT(c.id) as total " +
-             "FROM especialidades e " +
-             "LEFT JOIN citas c ON e.id = c.id_especialidad " +
-             "GROUP BY e.id, e.nombre " +
-             "ORDER BY total DESC " +
-             "LIMIT ?";
-        try (Connection conn = Conexion.getConexion();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "SELECT e.id, e.nombre, COUNT(c.id) as total "
+                + "FROM especialidades e "
+                + "LEFT JOIN citas c ON e.id = c.id_especialidad "
+                + "GROUP BY e.id, e.nombre "
+                + "ORDER BY total DESC "
+                + "LIMIT ?";
+        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, limite);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -409,7 +391,6 @@ public class CitaDAO {
         return c;
     }
 
-    // ===== CLASE INTERNA ESPECIALIDAD TOP =====
     public static class EspecialidadTop {
         private int id;
         private String nombre;

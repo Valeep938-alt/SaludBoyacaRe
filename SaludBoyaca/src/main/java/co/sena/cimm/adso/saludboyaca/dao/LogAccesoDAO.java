@@ -18,11 +18,13 @@ public class LogAccesoDAO {
         String sql = "INSERT INTO log_accesos (id_usuario, username, accion, ip, resultado) VALUES (?,?,?,?,?)";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
             ps.setObject(1, log.getIdUsuario(), Types.INTEGER);
             ps.setString(2, log.getUsername());
             ps.setString(3, log.getAccion());
             ps.setString(4, log.getIp());
             ps.setString(5, log.getResultado());
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error insertar log: " + e.getMessage());
@@ -36,7 +38,10 @@ public class LogAccesoDAO {
         try (Connection conn = Conexion.getConexion();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
-            while (rs.next()) lista.add(mapear(rs));
+            
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
         } catch (SQLException e) {
             System.err.println("Error listar logs: " + e.getMessage());
         }
@@ -48,9 +53,13 @@ public class LogAccesoDAO {
         String sql = "SELECT * FROM log_accesos WHERE username=? ORDER BY fecha DESC";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setString(1, username);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) lista.add(mapear(rs));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapear(rs));
+                }
+            }
         } catch (SQLException e) {
             System.err.println("Error listar por usuario: " + e.getMessage());
         }
@@ -59,12 +68,17 @@ public class LogAccesoDAO {
     
     public List<LogAcceso> listarPorFecha(java.util.Date fecha) {
         List<LogAcceso> lista = new ArrayList<>();
-        String sql = "SELECT * FROM log_accesos WHERE fecha::date=? ORDER BY fecha DESC";
+        // Usar CAST en lugar de ::date para mayor compatibilidad con pgAdmin 4
+        String sql = "SELECT * FROM log_accesos WHERE CAST(fecha AS DATE) = ? ORDER BY fecha DESC";
         try (Connection conn = Conexion.getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setDate(1, new java.sql.Date(fecha.getTime()));
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) lista.add(mapear(rs));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapear(rs));
+                }
+            }
         } catch (SQLException e) {
             System.err.println("Error listar por fecha: " + e.getMessage());
         }

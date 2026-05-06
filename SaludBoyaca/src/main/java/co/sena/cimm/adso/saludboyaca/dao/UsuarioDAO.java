@@ -98,7 +98,7 @@ public class UsuarioDAO {
 
     // BUSCAR POR USERNAME (para login)
     public Usuario buscarPorUsername(String username) {
-        String sql = "SELECT * FROM usuarios WHERE username=? AND activo=1";
+        String sql = "SELECT * FROM usuarios WHERE username=? AND activo=true";
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
@@ -113,7 +113,7 @@ public class UsuarioDAO {
 
     // VALIDAR LOGIN
     public Usuario validarLogin(String username, String password) {
-        String sql = "SELECT * FROM usuarios WHERE username=? AND password=? AND activo=1";
+        String sql = "SELECT * FROM usuarios WHERE username=? AND password=? AND activo=true";
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
             ps.setString(2, password);
@@ -174,12 +174,9 @@ public class UsuarioDAO {
 
     public List<Usuario> listarMedicosPorEspecialidad(int idEspecialidad) {
         List<Usuario> lista = new ArrayList<>();
-        // La tabla usuarios tiene campo 'especialidad' como texto libre, no FK.
-        // Necesitas hacer JOIN con especialidades para filtrar por id.
-        // OPCIÓN A: si el campo especialidad en usuarios guarda el NOMBRE de la especialidad:
         String sql = "SELECT u.* FROM usuarios u "
                 + "JOIN especialidades e ON e.nombre = u.especialidad "
-                + "WHERE u.rol = 'MEDICO' AND u.activo = 1 AND e.id = ? "
+                + "WHERE u.rol = 'MEDICO' AND u.activo = true AND e.id = ? "
                 + "ORDER BY u.apellidos";
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idEspecialidad);
