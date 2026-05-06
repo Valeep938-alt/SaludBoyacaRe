@@ -161,7 +161,10 @@
             align-items: flex-end;
             overflow: hidden;
             border-radius: 32px;
-            background: linear-gradient(135deg, var(--wine-deep) 0%, var(--wine-mid) 40%, #8B3A44 100%);
+            background: linear-gradient(135deg, rgba(86,28,36,0.92) 0%, rgba(109,41,50,0.88) 50%, rgba(86,28,36,0.85) 100%),
+                        url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1400&h=900&fit=crop&q=80');
+            background-size: cover;
+            background-position: center;
             padding: 4rem;
         }
         .hero::before {
@@ -480,8 +483,18 @@
         .srv-card-bg {
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, var(--wine-deep) 0%, var(--wine-mid) 100%);
-            opacity: 0.9;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.5s ease;
+        }
+        .srv-card:hover .srv-card-bg {
+            transform: scale(1.08);
+        }
+        .srv-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(86,28,36,0.15) 0%, rgba(86,28,36,0.85) 60%, rgba(86,28,36,0.95) 100%);
+            z-index: 1;
         }
         .srv-card-content {
             position: absolute;
@@ -1043,7 +1056,8 @@
 
     <div class="services-grid fade-up">
         <div class="srv-card">
-            <div class="srv-card-bg"></div>
+            <div class="srv-card-bg" style="background-image:url('https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=600&h=800&fit=crop&q=80')"></div>
+            <div class="srv-card-overlay"></div>
             <div class="srv-card-content">
                 <span class="srv-card-badge"><fmt:message key="srv.badge.popular"/></span>
                 <h4><fmt:message key="servicio.medicina.general"/></h4>
@@ -1053,7 +1067,8 @@
             </div>
         </div>
         <div class="srv-card">
-            <div class="srv-card-bg"></div>
+            <div class="srv-card-bg" style="background-image:url('https://images.unsplash.com/photo-1581056771107-24ca5f033842?w=600&h=800&fit=crop&q=80')"></div>
+            <div class="srv-card-overlay"></div>
             <div class="srv-card-content">
                 <span class="srv-card-badge"><fmt:message key="srv.badge.familia"/></span>
                 <h4><fmt:message key="servicio.pediatria"/></h4>
@@ -1063,7 +1078,8 @@
             </div>
         </div>
         <div class="srv-card">
-            <div class="srv-card-bg"></div>
+            <div class="srv-card-bg" style="background-image:url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=800&fit=crop&q=80')"></div>
+            <div class="srv-card-overlay"></div>
             <div class="srv-card-content">
                 <span class="srv-card-badge"><fmt:message key="srv.badge.mujer"/></span>
                 <h4><fmt:message key="servicio.ginecologia"/></h4>
@@ -1073,7 +1089,8 @@
             </div>
         </div>
         <div class="srv-card">
-            <div class="srv-card-bg"></div>
+            <div class="srv-card-bg" style="background-image:url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600&h=800&fit=crop&q=80')"></div>
+            <div class="srv-card-overlay"></div>
             <div class="srv-card-content">
                 <span class="srv-card-badge"><fmt:message key="srv.badge.dental"/></span>
                 <h4><fmt:message key="servicio.odontologia"/></h4>
