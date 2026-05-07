@@ -80,7 +80,7 @@ public class DashboardServlet extends HttpServlet {
         List<Cita> citasRecientes = new ArrayList<>();
         List<CitaDAO.EspecialidadTop> especialidadesTop = new ArrayList<>();
         Map<String, List<Cita>> citasPorDia = new HashMap<>();
-        
+
         Calendar cal = Calendar.getInstance();
         int calYear = cal.get(Calendar.YEAR);
         int calMonth = cal.get(Calendar.MONTH) + 1;
@@ -103,20 +103,39 @@ public class DashboardServlet extends HttpServlet {
                 } catch (Exception e) {
                     System.err.println("Error listarPorMedico: " + e.getMessage());
                 }
-                try { citasProgramadas = citaDAO.contarPorEstadoYMedico("PROGRAMADA", idMedico); } catch (Exception e) { /* ignore */ }
-                try { citasConfirmadas = citaDAO.contarPorEstadoYMedico("CONFIRMADA", idMedico); } catch (Exception e) { /* ignore */ }
-                try { citasAtendidas = citaDAO.contarPorEstadoYMedico("ATENDIDA", idMedico); } catch (Exception e) { /* ignore */ }
-                try { citasCanceladas = citaDAO.contarPorEstadoYMedico("CANCELADA", idMedico); } catch (Exception e) { /* ignore */ }
-                try { citasMes = citaDAO.contarPorMedicoYMes(idMedico, mesActual, anioActual); } catch (Exception e) { /* ignore */ }
+                try {
+                    citasProgramadas = citaDAO.contarPorEstadoYMedico("PROGRAMADA", idMedico);
+                } catch (Exception e) {
+                    /* ignore */ }
+                try {
+                    citasConfirmadas = citaDAO.contarPorEstadoYMedico("CONFIRMADA", idMedico);
+                } catch (Exception e) {
+                    /* ignore */ }
+                try {
+                    citasAtendidas = citaDAO.contarPorEstadoYMedico("ATENDIDA", idMedico);
+                } catch (Exception e) {
+                    /* ignore */ }
+                try {
+                    citasCanceladas = citaDAO.contarPorEstadoYMedico("CANCELADA", idMedico);
+                } catch (Exception e) {
+                    /* ignore */ }
+                try {
+                    citasMes = citaDAO.contarPorMedicoYMes(idMedico, mesActual, anioActual);
+                } catch (Exception e) {
+                    /* ignore */ }
                 try {
                     List<Cita> temp = citaDAO.listarPorFechaYMedico(hoy, idMedico);
-                    if (temp != null) citasHoy = temp;
+                    if (temp != null) {
+                        citasHoy = temp;
+                    }
                 } catch (Exception e) {
                     System.err.println("Error citasHoy medico: " + e.getMessage());
                 }
                 try {
                     List<CitaDAO.EspecialidadTop> temp = citaDAO.listarEspecialidadesTopPorMedico(5, idMedico);
-                    if (temp != null) especialidadesTop = temp;
+                    if (temp != null) {
+                        especialidadesTop = temp;
+                    }
                 } catch (Exception e) {
                     System.err.println("Error especialidadesTop medico: " + e.getMessage());
                 }
@@ -143,25 +162,48 @@ public class DashboardServlet extends HttpServlet {
                 } catch (Exception e) {
                     System.err.println("Error listarTodas: " + e.getMessage());
                 }
-                try { citasProgramadas = citaDAO.contarPorEstado("PROGRAMADA"); } catch (Exception e) { /* ignore */ }
-                try { citasConfirmadas = citaDAO.contarPorEstado("CONFIRMADA"); } catch (Exception e) { /* ignore */ }
-                try { citasAtendidas = citaDAO.contarPorEstado("ATENDIDA"); } catch (Exception e) { /* ignore */ }
-                try { citasCanceladas = citaDAO.contarPorEstado("CANCELADA"); } catch (Exception e) { /* ignore */ }
-                try { totalPacientes = pacienteDAO.contar(); } catch (Exception e) { /* ignore */ }
+                try {
+                    citasProgramadas = citaDAO.contarPorEstado("PROGRAMADA");
+                } catch (Exception e) {
+                    /* ignore */ }
+                try {
+                    citasConfirmadas = citaDAO.contarPorEstado("CONFIRMADA");
+                } catch (Exception e) {
+                    /* ignore */ }
+                try {
+                    citasAtendidas = citaDAO.contarPorEstado("ATENDIDA");
+                } catch (Exception e) {
+                    /* ignore */ }
+                try {
+                    citasCanceladas = citaDAO.contarPorEstado("CANCELADA");
+                } catch (Exception e) {
+                    /* ignore */ }
+                try {
+                    totalPacientes = pacienteDAO.contar();
+                } catch (Exception e) {
+                    /* ignore */ }
                 try {
                     List<Usuario> medicos = usuarioDAO.listarMedicos();
                     totalMedicos = medicos != null ? medicos.size() : 0;
-                } catch (Exception e) { /* ignore */ }
+                } catch (Exception e) {
+                    /* ignore */ }
                 try {
                     List<Cita> temp = citaDAO.listarPorFecha(hoy);
-                    if (temp != null) citasHoy = temp;
+                    if (temp != null) {
+                        citasHoy = temp;
+                    }
                 } catch (Exception e) {
                     System.err.println("Error citasHoy: " + e.getMessage());
                 }
-                try { citasMes = citaDAO.contarPorMes(mesActual, anioActual); } catch (Exception e) { /* ignore */ }
+                try {
+                    citasMes = citaDAO.contarPorMes(mesActual, anioActual);
+                } catch (Exception e) {
+                    /* ignore */ }
                 try {
                     List<CitaDAO.EspecialidadTop> temp = citaDAO.listarEspecialidadesTop(5);
-                    if (temp != null) especialidadesTop = temp;
+                    if (temp != null) {
+                        especialidadesTop = temp;
+                    }
                 } catch (Exception e) {
                     System.err.println("Error especialidadesTop: " + e.getMessage());
                 }
@@ -192,8 +234,14 @@ public class DashboardServlet extends HttpServlet {
             }
 
             // Ajustar meses fuera de rango
-            if (calMonth < 1) { calMonth = 12; calYear--; }
-            if (calMonth > 12) { calMonth = 1; calYear++; }
+            if (calMonth < 1) {
+                calMonth = 12;
+                calYear--;
+            }
+            if (calMonth > 12) {
+                calMonth = 1;
+                calYear++;
+            }
 
             Calendar calView = Calendar.getInstance();
             calView.set(calYear, calMonth - 1, 1);
@@ -201,22 +249,26 @@ public class DashboardServlet extends HttpServlet {
             daysInMonth = calView.getActualMaximum(Calendar.DAY_OF_MONTH);
 
             // Obtener citas para cada día del mes (filtradas por rol)
-            for (int dia = 1; dia <= daysInMonth; dia++) {
-                String fechaKey = String.format("%04d-%02d-%02d", calYear, calMonth, dia);
-                try {
-                    Date fechaDia = Date.valueOf(fechaKey);
-                    List<Cita> citasDia;
-                    if (esMedico) {
-                        citasDia = citaDAO.listarPorFechaYMedico(fechaDia, idMedico);
-                    } else {
-                        citasDia = citaDAO.listarPorFecha(fechaDia);
-                    }
-                    if (citasDia != null && !citasDia.isEmpty()) {
-                        citasPorDia.put(fechaKey, citasDia);
-                    }
-                } catch (Exception e) {
-                    // ignorar fechas inválidas
+            try {
+                List<Cita> citasMesCompleto;
+                if (esMedico) {
+                    citasMesCompleto = citaDAO.listarPorMesPorMedico(calMonth, calYear, idMedico);
+                } else {
+                    citasMesCompleto = citaDAO.listarPorMes(calMonth, calYear);
                 }
+                if (citasMesCompleto != null) {
+                    for (Cita cita : citasMesCompleto) {
+                        if (cita.getFechaCita() != null) {
+                            String fechaKey = cita.getFechaCita().toString(); // formato "yyyy-MM-dd"
+                            if (!citasPorDia.containsKey(fechaKey)) {
+                                citasPorDia.put(fechaKey, new ArrayList<>());
+                            }
+                            citasPorDia.get(fechaKey).add(cita);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error calendario mes: " + e.getMessage());
             }
 
             // Determinar día actual
@@ -234,7 +286,8 @@ public class DashboardServlet extends HttpServlet {
         if ("MEDICO".equals(usuario.getRol())) {
             try {
                 horariosMedico = horarioDAO.listarPorMedico(usuario.getId());
-            } catch (Exception e) { /* ignore */ }
+            } catch (Exception e) {
+                /* ignore */ }
         }
 
         // ===== SETEAR ATRIBUTOS =====
@@ -267,15 +320,15 @@ public class DashboardServlet extends HttpServlet {
         if ("en".equals(lang)) {
             dayNames = new String[]{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
             monthNames = new String[]{"January", "February", "March", "April", "May", "June",
-                                      "July", "August", "September", "October", "November", "December"};
+                "July", "August", "September", "October", "November", "December"};
         } else if ("it".equals(lang)) {
             dayNames = new String[]{"Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"};
             monthNames = new String[]{"Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-                                      "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"};
+                "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"};
         } else {
             dayNames = new String[]{"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"};
             monthNames = new String[]{"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                                      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
         }
         request.setAttribute("dayNames", dayNames);
         request.setAttribute("monthNames", monthNames);

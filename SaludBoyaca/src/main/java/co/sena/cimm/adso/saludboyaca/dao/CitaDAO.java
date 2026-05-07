@@ -240,7 +240,9 @@ public class CitaDAO {
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, estado);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.err.println("Error contar citas: " + e.getMessage());
         }
@@ -254,7 +256,9 @@ public class CitaDAO {
             ps.setDate(2, fecha);
             ps.setTime(3, hora);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.err.println("Error contar citas por medico, fecha y hora: " + e.getMessage());
         }
@@ -267,7 +271,9 @@ public class CitaDAO {
             ps.setInt(1, idMedico);
             ps.setDate(2, fecha);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.err.println("Error contar citas medico-fecha: " + e.getMessage());
         }
@@ -280,7 +286,9 @@ public class CitaDAO {
             ps.setInt(1, idMedico);
             ps.setString(2, estado);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.err.println("Error contar citas medico-estado: " + e.getMessage());
         }
@@ -294,7 +302,9 @@ public class CitaDAO {
             ps.setInt(2, mes);
             ps.setInt(3, anio);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.err.println("Error contar citas medico-mes: " + e.getMessage());
         }
@@ -306,7 +316,9 @@ public class CitaDAO {
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDate(1, fecha);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.err.println("Error contar citas por fecha: " + e.getMessage());
         }
@@ -319,7 +331,9 @@ public class CitaDAO {
             ps.setInt(1, mes);
             ps.setInt(2, anio);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.err.println("Error contar por mes: " + e.getMessage());
         }
@@ -369,7 +383,6 @@ public class CitaDAO {
 
 
     /* ===== MÉTODOS PARA FILTRAR POR MÉDICO EN DASHBOARD ===== */
-
     public List<Cita> listarPorFechaYMedico(Date fecha, int idMedico) {
         List<Cita> lista = new ArrayList<>();
         String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
@@ -398,7 +411,9 @@ public class CitaDAO {
             ps.setString(1, estado);
             ps.setInt(2, idMedico);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.err.println("Error contar citas por estado y medico: " + e.getMessage());
         }
@@ -410,7 +425,9 @@ public class CitaDAO {
         try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idMedico);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             System.err.println("Error contar total por medico: " + e.getMessage());
         }
@@ -442,6 +459,54 @@ public class CitaDAO {
         return lista;
     }
 
+    public List<Cita> listarPorMes(int mes, int anio) {
+        List<Cita> lista = new ArrayList<>();
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
+                + "FROM citas c "
+                + "JOIN pacientes p ON c.id_paciente = p.id "
+                + "JOIN usuarios u ON c.id_medico = u.id "
+                + "JOIN especialidades e ON c.id_especialidad = e.id "
+                + "WHERE EXTRACT(MONTH FROM c.fecha_cita) = ? AND EXTRACT(YEAR FROM c.fecha_cita) = ? "
+                + "ORDER BY c.fecha_cita, c.hora_cita";
+        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, mes);
+            ps.setInt(2, anio);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                lista.add(mapearConJoins(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error listarPorMes: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    public List<Cita> listarPorMesPorMedico(int mes, int anio, int idMedico) {
+        List<Cita> lista = new ArrayList<>();
+        String sql = "SELECT c.*, p.nombres || ' ' || p.apellidos as nom_paciente, "
+                + "u.nombres || ' ' || u.apellidos as nom_medico, e.nombre as nom_especialidad "
+                + "FROM citas c "
+                + "JOIN pacientes p ON c.id_paciente = p.id "
+                + "JOIN usuarios u ON c.id_medico = u.id "
+                + "JOIN especialidades e ON c.id_especialidad = e.id "
+                + "WHERE EXTRACT(MONTH FROM c.fecha_cita) = ? AND EXTRACT(YEAR FROM c.fecha_cita) = ? "
+                + "AND c.id_medico = ? "
+                + "ORDER BY c.fecha_cita, c.hora_cita";
+        try (Connection conn = Conexion.getConexion(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, mes);
+            ps.setInt(2, anio);
+            ps.setInt(3, idMedico);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                lista.add(mapearConJoins(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error listarPorMesPorMedico: " + e.getMessage());
+        }
+        return lista;
+    }
+
     private Cita mapear(ResultSet rs) throws SQLException {
         Cita c = new Cita();
         c.setId(rs.getInt("id"));
@@ -467,15 +532,33 @@ public class CitaDAO {
     }
 
     public static class EspecialidadTop {
+
         private int id;
         private String nombre;
         private int totalCitas;
 
-        public int getId() { return id; }
-        public void setId(int id) { this.id = id; }
-        public String getNombre() { return nombre; }
-        public void setNombre(String nombre) { this.nombre = nombre; }
-        public int getTotalCitas() { return totalCitas; }
-        public void setTotalCitas(int totalCitas) { this.totalCitas = totalCitas; }
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getNombre() {
+            return nombre;
+        }
+
+        public void setNombre(String nombre) {
+            this.nombre = nombre;
+        }
+
+        public int getTotalCitas() {
+            return totalCitas;
+        }
+
+        public void setTotalCitas(int totalCitas) {
+            this.totalCitas = totalCitas;
+        }
     }
 }
