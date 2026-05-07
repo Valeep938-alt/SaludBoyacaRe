@@ -17,55 +17,53 @@ import co.sena.cimm.adso.saludboyaca.util.CaptchaGenerator;
 public class IndexServlet extends HttpServlet {
 
     private PacienteDAO pacienteDAO;
-    private CitaDAO     citaDAO;
+    private CitaDAO citaDAO;
     private EspecialidadDAO especialidadDAO;
 
     @Override
     public void init() throws ServletException {
-        pacienteDAO     = new PacienteDAO();
-        citaDAO         = new CitaDAO();
+        pacienteDAO = new PacienteDAO();
+        citaDAO = new CitaDAO();
         especialidadDAO = new EspecialidadDAO();
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-            request.setCharacterEncoding("UTF-8");
-            response.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
 
-        // ── Stats desde la BD ─────────────────────────────────────
-        int totalPacientes    = pacienteDAO.contar();
-        int totalCitas        = citaDAO.contarPorEstado("ATENDIDA");
-        int totalEspecialidades = especialidadDAO.listarTodos().size();
+        // ── Stats desde la BD (con protección) ─────────────────────────────────────
+        int totalPacientes = 0;
+        int totalCitas = 0;
+        int totalEspecialidades = 0;
+        int cobertura = 0;
 
-        // Cobertura: porcentaje de citas atendidas vs total (excl. canceladas)
-        int totalNoCanc = totalCitas
-                        + citaDAO.contarPorEstado("PROGRAMADA")
-                        + citaDAO.contarPorEstado("CONFIRMADA");
-        int cobertura = totalNoCanc > 0 ? (int) Math.round(totalCitas * 100.0 / totalNoCanc) : 0;
+        try {
+            totalPacientes = pacienteDAO.contar();
+            totalCitas = citaDAO.contarPorEstado("ATENDIDA");
+            totalEspecialidades = especialidadDAO.listarTodos().size();
 
-        request.setAttribute("totalPacientes",     totalPacientes);
-        request.setAttribute("totalCitas",         totalCitas);
-        request.setAttribute("totalEspecialidades",totalEspecialidades);
-        request.setAttribute("cobertura",          cobertura);
+            int totalNoCanc = totalCitas
+                    + citaDAO.contarPorEstado("PROGRAMADA")
+                    + citaDAO.contarPorEstado("CONFIRMADA");
+            cobertura = totalNoCanc > 0 ? (int) Math.round(totalCitas * 100.0 / totalNoCanc) : 0;
 
-        // ── CAPTCHA para el módulo de consulta pública ────────────
+        } catch (Exception e) {
+            System.err.println("Error cargando stats del dashboard: " + e.getMessage());
+            // La página carga igual, solo con valores en 0
+        }
+
+        request.setAttribute("totalPacientes", totalPacientes);
+        request.setAttribute("totalCitas", totalCitas);
+        request.setAttribute("totalEspecialidades", totalEspecialidades);
+        request.setAttribute("cobertura", cobertura);
+
+        // ── CAPTCHA ────────────────────────────────────────────────────────────────
         String captchaText = CaptchaGenerator.generarTextoCaptcha();
         request.getSession().setAttribute("captchaText", captchaText);
         request.setAttribute("captchaText", captchaText);
 
         request.getRequestDispatcher("/index.jsp").forward(request, response);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // El cambio de idioma llega por POST desde el selector
-        request.setCharacterEncoding("UTF-8");
-        String lang = request.getParameter("lang");
-        if (lang != null && (lang.equals("es") || lang.equals("en") || lang.equals("it"))) {
-            request.getSession().setAttribute("lang", lang);
-        }
-        response.sendRedirect(request.getContextPath() + "/index");
     }
 }
