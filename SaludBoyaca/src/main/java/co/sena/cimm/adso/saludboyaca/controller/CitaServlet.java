@@ -76,9 +76,11 @@ public class CitaServlet extends HttpServlet {
             StringBuilder json = new StringBuilder("[");
             for (int i = 0; i < medicos.size(); i++) {
                 Usuario m = medicos.get(i);
-                if (i > 0) json.append(",");
+                if (i > 0) {
+                    json.append(",");
+                }
                 json.append("{\"id\":").append(m.getId())
-                    .append(",\"nombre\":\"").append(m.getNombres()).append(" ").append(m.getApellidos()).append("\"}");
+                        .append(",\"nombre\":\"").append(m.getNombres()).append(" ").append(m.getApellidos()).append("\"}");
             }
             json.append("]");
             response.setContentType("application/json; charset=UTF-8");
@@ -92,7 +94,9 @@ public class CitaServlet extends HttpServlet {
             List<Integer> dias = horarioDAO.listarDiasPorMedico(idMedico);
             StringBuilder json = new StringBuilder("[");
             for (int i = 0; i < dias.size(); i++) {
-                if (i > 0) json.append(",");
+                if (i > 0) {
+                    json.append(",");
+                }
                 json.append(dias.get(i));
             }
             json.append("]");
@@ -120,7 +124,9 @@ public class CitaServlet extends HttpServlet {
                     while (cursor.isBefore(fin)) {
                         String slot = cursor.toString().substring(0, 5);
                         if (!horasOcupadas.contains(slot)) {
-                            if (!first) json.append(",");
+                            if (!first) {
+                                json.append(",");
+                            }
                             json.append("\"").append(slot).append("\"");
                             first = false;
                         }
@@ -138,7 +144,7 @@ public class CitaServlet extends HttpServlet {
             case "/listar":
                 listar(request, response, usuario);
                 break;
-                
+
             case "/nueva":
                 // ✅ SOLO RECEPCIONISTA puede crear citas
                 if (usuario.isRecepcionista()) {
@@ -147,7 +153,7 @@ public class CitaServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/citas/listar");
                 }
                 break;
-                
+
             case "/editar":
                 // ✅ SOLO RECEPCIONISTA puede editar citas
                 if (usuario.isRecepcionista()) {
@@ -156,39 +162,36 @@ public class CitaServlet extends HttpServlet {
                     listar(request, response, usuario);
                 }
                 break;
-                
+
             case "/detalle":
                 // ✅ Todos los roles pueden ver detalle
                 detalle(request, response);
                 break;
-                
+
             case "/cancelar":
-                // ✅ SOLO MÉDICO puede cancelar citas
-                if (usuario.isMedico()) {
+                if (usuario.isMedico() || usuario.isRecepcionista()) {
                     cambiarEstado(request, response, "CANCELADA");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/citas/listar");
                 }
                 break;
-                
+
             case "/confirmar":
-                // ✅ SOLO MÉDICO puede confirmar citas
-                if (usuario.isMedico()) {
+                if (usuario.isMedico() || usuario.isRecepcionista()) {
                     cambiarEstado(request, response, "CONFIRMADA");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/citas/listar");
                 }
                 break;
-                
+
             case "/atender":
-                // ✅ SOLO MÉDICO puede atender citas
                 if (usuario.isMedico()) {
                     cambiarEstado(request, response, "ATENDIDA");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/citas/listar");
                 }
                 break;
-                
+
             default:
                 listar(request, response, usuario);
         }
@@ -222,7 +225,7 @@ public class CitaServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/citas/listar");
                 }
                 break;
-                
+
             case "/actualizar":
                 // ✅ SOLO RECEPCIONISTA puede actualizar citas
                 if (usuario.isRecepcionista()) {
@@ -231,7 +234,7 @@ public class CitaServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/citas/listar");
                 }
                 break;
-                
+
             default:
                 response.sendRedirect(request.getContextPath() + "/citas/listar");
         }
@@ -363,7 +366,10 @@ public class CitaServlet extends HttpServlet {
             }
         } finally {
             if (out != null) {
-                try { out.close(); } catch (IOException e) { /* ignore */ }
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    /* ignore */ }
             }
         }
     }

@@ -165,10 +165,10 @@
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                             </c:if>
-                                            <c:if test="${sessionScope.usuarioRol == 'MEDICO' && cita.estado == 'PROGRAMADA'}">
+                                            <c:if test="${(sessionScope.usuarioRol == 'MEDICO' || sessionScope.usuarioRol == 'RECEPCIONISTA') && cita.estado == 'PROGRAMADA'}">
                                                 <a href="${pageContext.request.contextPath}/citas/confirmar?id=${cita.id}"
-                                                   class="btn-action btn-act-confirm"
-                                                   title="<fmt:message key='cita.accion.confirmar'/>">
+                                                    class="btn-action btn-act-confirm"
+                                                    title="<fmt:message key='cita.accion.confirmar'/>">
                                                     <i class="fas fa-check"></i>
                                                 </a>
                                             </c:if>
@@ -179,7 +179,7 @@
                                                     <i class="fas fa-stethoscope"></i>
                                                 </a>
                                             </c:if>
-                                            <c:if test="${sessionScope.usuarioRol == 'MEDICO' && cita.estado != 'CANCELADA' && cita.estado != 'ATENDIDA'}">
+                                            <c:if test="${(sessionScope.usuarioRol == 'MEDICO' || sessionScope.usuarioRol == 'RECEPCIONISTA') && cita.estado != 'CANCELADA' && cita.estado != 'ATENDIDA'}">
                                                 <a href="${pageContext.request.contextPath}/citas/cancelar?id=${cita.id}"
                                                    class="btn-action btn-act-cancel"
                                                    title="<fmt:message key='cita.accion.cancelar'/>"
